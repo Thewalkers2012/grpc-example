@@ -1,12 +1,15 @@
 package service_test
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"io"
 	"log"
 	"math/rand"
 	"net"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -25,7 +28,8 @@ func init() {
 func TestClientCreateLaptop(t *testing.T) {
 	t.Parallel()
 
-	laptopServer, serverAddress := startTestLaptopServer(t, service.NewInMemoryLaptopStore())
+	laptopStore := service.NewInMemoryLaptopStore()
+	serverAddress := startTestLaptopServer(t, laptopStore, nil)
 	laptopClient := newTestLaptopClient(t, serverAddress)
 
 	laptop := sample.NewLaptop()
@@ -41,7 +45,7 @@ func TestClientCreateLaptop(t *testing.T) {
 	assert.Equal(t, expectedID, res.Id)
 
 	// check that the laptop is saved to the store
-	other, err := laptopServer.Store.Find(res.Id)
+	other, err := laptopStore.Find(res.Id)
 	assert.NoError(t, err)
 	assert.NotNil(t, other)
 
@@ -93,7 +97,7 @@ func TestClientSearchLaptop(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	_, serverAddress := startTestLaptopServer(t, store)
+	serverAddress := startTestLaptopServer(t, store, nil)
 	laptopClient := newTestLaptopClient(t, serverAddress)
 
 	req := &pb.SearchLaptopRequest{
@@ -118,8 +122,77 @@ func TestClientSearchLaptop(t *testing.T) {
 	assert.Equal(t, len(expectedIDs), found)
 }
 
-func startTestLaptopServer(t *testing.T, store service.LaptopStore) (*service.LaptopServer, string) {
-	laptopServer := service.NewLaptopService(store)
+func TestClientUploadImage(t *testing.T) {
+	t.Parallel()
+
+	testImageFolder := "../tmp"
+
+	laptopStore := service.NewInMemoryLaptopStore()
+	imageStore := service.NewDiskImageStore(testImageFolder)
+
+	laptop := sample.NewLaptop()
+	err := laptopStore.Save(laptop)
+	assert.NoError(t, err)
+
+	serverAddress := startTestLaptopServer(t, laptopStore, imageStore)
+	laptopClient := newTestLaptopClient(t, serverAddress)
+
+	imagePath := fmt.Sprintf("%s/laptop.jpeg", testImageFolder)
+	file, err := os.Open(imagePath)
+	assert.NoError(t, err)
+	defer file.Close()
+
+	stream, err := laptopClient.UploadImage(context.Background())
+	assert.NoError(t, err)
+
+	imageType := filepath.Ext(imagePath)
+	req := &pb.UploadmageRequest{
+		Data: &pb.UploadmageRequest_Info{
+			Info: &pb.ImageInfo{
+				LaptopId:   laptop.GetId(),
+				ImageTypes: imageType,
+			},
+		},
+	}
+
+	err = stream.Send(req)
+	assert.NoError(t, err)
+
+	reader := bufio.NewReader(file)
+	buffer := make([]byte, 1024)
+	size := 0
+
+	for {
+		n, err := reader.Read(buffer)
+		if err == io.EOF {
+			break
+		}
+
+		assert.NoError(t, err)
+		size += n
+
+		req := &pb.UploadmageRequest{
+			Data: &pb.UploadmageRequest_ChunkData{
+				ChunkData: buffer[:n],
+			},
+		}
+
+		err = stream.Send(req)
+		assert.NoError(t, err)
+	}
+
+	res, err := stream.CloseAndRecv()
+	assert.NoError(t, err)
+	assert.NotZero(t, res.GetId())
+	assert.EqualValues(t, res.GetSize(), size)
+
+	saveImagePath := fmt.Sprintf("%s/%s%s", testImageFolder, res.GetId(), imageType)
+	assert.FileExists(t, saveImagePath)
+	assert.NoError(t, os.Remove(saveImagePath))
+}
+
+func startTestLaptopServer(t *testing.T, laptopStore service.LaptopStore, imageStore service.ImageStore) string {
+	laptopServer := service.NewLaptopService(laptopStore, imageStore)
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterLaptopServiceServer(grpcServer, laptopServer)
@@ -133,7 +206,7 @@ func startTestLaptopServer(t *testing.T, store service.LaptopStore) (*service.La
 
 	go grpcServer.Serve(listener) // non block
 
-	return laptopServer, listener.Addr().String()
+	return listener.Addr().String()
 }
 
 func newTestLaptopClient(t *testing.T, serverAddress string) pb.LaptopServiceClient {

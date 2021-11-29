@@ -1,62 +1,62 @@
 {
- "id":  "2259f47a-27a9-453b-843f-0697c0b84525",
- "brand":  "",
- "name":  "Thinkpad P53",
- "cpu":  {
-  "brand":  "AMD",
-  "name":  "Ryzen 7 PRO 2700U",
-  "number_cores":  2,
-  "number_threads":  6,
-  "min_ghz":  3.6768979039213776,
-  "max_ghz":  4.466522332505278
+ "id": "a2442dad-97b0-414c-b135-558467625ec2",
+ "brand": "",
+ "name": "Macbook Pro",
+ "cpu": {
+  "brand": "AMD",
+  "name": "Ryzen 5 PRO 3500U",
+  "number_cores": 2,
+  "number_threads": 10,
+  "min_ghz": 3.2437636250492896,
+  "max_ghz": 3.8171814683978944
  },
- "ram":  {
-  "value":  "50",
-  "unit":  "GIGABYTE"
+ "ram": {
+  "value": "12",
+  "unit": "GIGABYTE"
  },
- "gpus":  [
+ "gpus": [
   {
-   "brand":  "AMD",
-   "name":  "RX 580",
-   "min_ghz":  1.5277543292662448,
-   "max_ghz":  2.9150231263407793,
-   "momory":  {
-    "value":  "6",
-    "unit":  "GIGABYTE"
+   "brand": "AMD",
+   "name": "RX 5700-XT",
+   "min_ghz": 1.84768478231781,
+   "max_ghz": 2.431456854875897,
+   "momory": {
+    "value": "4",
+    "unit": "GIGABYTE"
    }
   }
  ],
- "storage":  [
+ "storage": [
   {
-   "driver":  "HDD",
-   "memory":  {
-    "value":  "2",
-    "unit":  "TERABYTE"
+   "driver": "HDD",
+   "memory": {
+    "value": "2",
+    "unit": "TERABYTE"
    }
   },
   {
-   "driver":  "SSD",
-   "memory":  {
-    "value":  "1018",
-    "unit":  "GIGABYTE"
+   "driver": "SSD",
+   "memory": {
+    "value": "164",
+    "unit": "GIGABYTE"
    }
   }
  ],
- "screen":  {
-  "size_inch":  16.817186,
-  "resolution":  {
-   "width":  4896,
-   "height":  2754
+ "screen": {
+  "size_inch": 17.279575,
+  "resolution": {
+   "width": 3955,
+   "height": 2225
   },
-  "panel":  "OLED",
-  "multitouch":  true
+  "panel": "IPS",
+  "multitouch": false
  },
- "keyboard":  {
-  "layout":  "AZERTY",
-  "backlit":  false
+ "keyboard": {
+  "layout": "QWERTY",
+  "backlit": false
  },
- "weight_kg":  1.5284942838146307,
- "price_usd":  2512.178509728996,
- "release_year":  2017,
- "updated_at":  "2021-11-27T11:29:07.155787681Z"
+ "weight_kg": 1.1868199655786449,
+ "price_usd": 2229.4043360197356,
+ "release_year": 2016,
+ "updated_at": "2021-11-29T14:04:28.706021569Z"
 }
