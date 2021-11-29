@@ -1,0 +1,62 @@
+{
+ "id":  "2259f47a-27a9-453b-843f-0697c0b84525",
+ "brand":  "",
+ "name":  "Thinkpad P53",
+ "cpu":  {
+  "brand":  "AMD",
+  "name":  "Ryzen 7 PRO 2700U",
+  "number_cores":  2,
+  "number_threads":  6,
+  "min_ghz":  3.6768979039213776,
+  "max_ghz":  4.466522332505278
+ },
+ "ram":  {
+  "value":  "50",
+  "unit":  "GIGABYTE"
+ },
+ "gpus":  [
+  {
+   "brand":  "AMD",
+   "name":  "RX 580",
+   "min_ghz":  1.5277543292662448,
+   "max_ghz":  2.9150231263407793,
+   "momory":  {
+    "value":  "6",
+    "unit":  "GIGABYTE"
+   }
+  }
+ ],
+ "storage":  [
+  {
+   "driver":  "HDD",
+   "memory":  {
+    "value":  "2",
+    "unit":  "TERABYTE"
+   }
+  },
+  {
+   "driver":  "SSD",
+   "memory":  {
+    "value":  "1018",
+    "unit":  "GIGABYTE"
+   }
+  }
+ ],
+ "screen":  {
+  "size_inch":  16.817186,
+  "resolution":  {
+   "width":  4896,
+   "height":  2754
+  },
+  "panel":  "OLED",
+  "multitouch":  true
+ },
+ "keyboard":  {
+  "layout":  "AZERTY",
+  "backlit":  false
+ },
+ "weight_kg":  1.5284942838146307,
+ "price_usd":  2512.178509728996,
+ "release_year":  2017,
+ "updated_at":  "2021-11-27T11:29:07.155787681Z"
+}
