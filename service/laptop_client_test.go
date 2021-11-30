@@ -29,7 +29,7 @@ func TestClientCreateLaptop(t *testing.T) {
 	t.Parallel()
 
 	laptopStore := service.NewInMemoryLaptopStore()
-	serverAddress := startTestLaptopServer(t, laptopStore, nil)
+	serverAddress := startTestLaptopServer(t, laptopStore, nil, nil)
 	laptopClient := newTestLaptopClient(t, serverAddress)
 
 	laptop := sample.NewLaptop()
@@ -97,7 +97,7 @@ func TestClientSearchLaptop(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	serverAddress := startTestLaptopServer(t, store, nil)
+	serverAddress := startTestLaptopServer(t, store, nil, nil)
 	laptopClient := newTestLaptopClient(t, serverAddress)
 
 	req := &pb.SearchLaptopRequest{
@@ -134,7 +134,7 @@ func TestClientUploadImage(t *testing.T) {
 	err := laptopStore.Save(laptop)
 	assert.NoError(t, err)
 
-	serverAddress := startTestLaptopServer(t, laptopStore, imageStore)
+	serverAddress := startTestLaptopServer(t, laptopStore, imageStore, nil)
 	laptopClient := newTestLaptopClient(t, serverAddress)
 
 	imagePath := fmt.Sprintf("%s/laptop.jpeg", testImageFolder)
@@ -191,8 +191,60 @@ func TestClientUploadImage(t *testing.T) {
 	assert.NoError(t, os.Remove(saveImagePath))
 }
 
-func startTestLaptopServer(t *testing.T, laptopStore service.LaptopStore, imageStore service.ImageStore) string {
-	laptopServer := service.NewLaptopService(laptopStore, imageStore)
+func TestClientRateLaptop(t *testing.T) {
+	t.Parallel()
+
+	laptopStore := service.NewInMemoryLaptopStore()
+	ratingStore := service.NewInMemoryRatingStore()
+
+	laptop := sample.NewLaptop()
+	err := laptopStore.Save(laptop)
+	assert.NoError(t, err)
+
+	serverAddress := startTestLaptopServer(t, laptopStore, nil, ratingStore)
+	laptopClient := newTestLaptopClient(t, serverAddress)
+
+	stream, err := laptopClient.RateLaptop(context.Background())
+	assert.NoError(t, err)
+
+	scores := []float64{8, 7.5, 10}
+	average := []float64{8, 7.75, 8.5}
+
+	n := len(scores)
+	for i := 0; i < n; i++ {
+		req := &pb.RateLaptopRequest{
+			LaptopId: laptop.GetId(),
+			Score:    scores[i],
+		}
+
+		err := stream.Send(req)
+		assert.NoError(t, err)
+	}
+
+	err = stream.CloseSend()
+	assert.NoError(t, err)
+
+	for idx := 0; ; idx++ {
+		res, err := stream.Recv()
+		if err == io.EOF {
+			assert.Equal(t, n, idx)
+			return
+		}
+
+		assert.NoError(t, err)
+		assert.Equal(t, laptop.GetId(), res.GetLaptopId())
+		assert.Equal(t, uint32(idx+1), res.GetRatedCount())
+		assert.Equal(t, average[idx], res.GetAverageScore())
+	}
+}
+
+func startTestLaptopServer(
+	t *testing.T,
+	laptopStore service.LaptopStore,
+	imageStore service.ImageStore,
+	ratingStore service.RatingStore,
+) string {
+	laptopServer := service.NewLaptopService(laptopStore, imageStore, ratingStore)
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterLaptopServiceServer(grpcServer, laptopServer)
